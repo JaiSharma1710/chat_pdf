@@ -41,7 +41,7 @@ const FileUpload = () => {
           return;
         }
         mutate(
-          { fileId: response.$id, fileName: response.name },
+          { fileId: "response.$id", fileName: "response.name" },
           {
             onSuccess: (data) => {
               toast.success("successfully uploaded your files");
@@ -53,7 +53,6 @@ const FileUpload = () => {
             },
           }
         );
-        getAppwriteFileUrl(response.$id);
       } catch (error) {
         console.log(error);
       } finally {
