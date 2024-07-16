@@ -13,3 +13,7 @@ export default function UploadFile(file: any) {
     file
   );
 }
+
+export function getAppwriteFileUrl(fileID: string) {
+  return `cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${fileID}/view?project=${process.env.NEXT_PUBLIC_PROJECT_ID}`;
+}

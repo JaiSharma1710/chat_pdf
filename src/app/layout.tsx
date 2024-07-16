@@ -1,17 +1,9 @@
-import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
-import { Button } from "@/components/ui/button";
-
-const inter = Inter({ subsets: ["latin"] });
+import Provider from "@/components/Provider";
 
 export const metadata: Metadata = {
   title: "Chat PDF",
@@ -25,9 +17,14 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={`bg-gradient-to-r from-rose-100 to-teal-100 ${inter.className}`}>{children}</body>
-      </html>
+      <Provider>
+        <html lang="en">
+          <body className="bg-gradient-to-r from-rose-100 to-teal-100">
+            <Toaster />
+            {children}
+          </body>
+        </html>
+      </Provider>
     </ClerkProvider>
   );
 }
