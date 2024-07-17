@@ -1,15 +1,17 @@
-import { loadPdfToPinecone } from "@/lib/pinecone";
 import { NextRequest, NextResponse } from "next/server";
-import { downloadFileFromAppWrite } from "@/lib/downloadFile";
+
+import { loadPdfToPinecone } from "@/lib/pinecone";
 
 export async function POST(req: NextRequest, res: NextResponse) {
   try {
     const body = await req.json();
     const { fileName, fileId } = body;
-    await loadPdfToPinecone(fileId);
-    console.log(fileName, fileId);
 
-    // downloadFileFromAppWrite("6696b5e70018f965044f");
+    console.log(fileId);
+
+    const pages = await loadPdfToPinecone(fileId);
+
+    console.log(pages);
 
     return NextResponse.json({ messages: "success" });
   } catch (error) {

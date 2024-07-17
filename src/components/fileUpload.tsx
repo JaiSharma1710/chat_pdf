@@ -1,11 +1,12 @@
 "use client";
-import UploadFile, { getAppwriteFileUrl } from "@/lib/uploadFIle";
-import { useMutation } from "@tanstack/react-query";
 import { InboxIcon, Loader } from "lucide-react";
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import axios from "axios";
+
+import UploadFile from "@/lib/uploadFIle";
 
 const FileUpload = () => {
   const [uploading, setUploading] = useState(false);
@@ -41,7 +42,7 @@ const FileUpload = () => {
           return;
         }
         mutate(
-          { fileId: "response.$id", fileName: "response.name" },
+          { fileId: response.$id, fileName: response.name },
           {
             onSuccess: (data) => {
               toast.success("successfully uploaded your files");

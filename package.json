@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^5.2.3",
+    "@langchain/community": "^0.2.19",
     "@neondatabase/serverless": "^0.9.4",
     "@pinecone-database/pinecone": "^2.2.2",
     "@radix-ui/react-slot": "^1.1.0",
@@ -22,8 +23,10 @@
     "drizzle-kit": "^0.23.0",
     "drizzle-orm": "^0.32.0",
     "fs": "^0.0.1-security",
+    "langchain": "^0.2.10",
     "lucide-react": "^0.408.0",
     "next": "14.2.5",
+    "pdf-parse": "^1.1.1",
     "react": "^18",
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
