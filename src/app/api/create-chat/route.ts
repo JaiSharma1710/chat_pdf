@@ -2,18 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { loadPdfToPinecone } from "@/lib/pinecone";
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { fileName, fileId } = body;
-
-    console.log(fileId);
-
-    const pages = await loadPdfToPinecone(fileId);
-
-    console.log(pages);
-
-    return NextResponse.json({ messages: "success" });
+    const { fileId } = body;
+    const data = await loadPdfToPinecone(fileId);
+    return NextResponse.json({ messages: "success", data });
   } catch (error) {
     console.log(error);
     return NextResponse.json(
