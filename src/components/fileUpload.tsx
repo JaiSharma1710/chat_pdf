@@ -7,18 +7,19 @@ import toast from "react-hot-toast";
 import axios from "axios";
 
 import UploadFile from "@/lib/uploadFIle";
+import { embedDocument } from "@/lib/embeding";
+import { uploadDataToPinecone } from "@/lib/pinecone";
+
+type mutationFnProps = {
+  fileName: string;
+  fileId: string;
+};
 
 const FileUpload = () => {
   const [uploading, setUploading] = useState(false);
   const { mutate, isPending } = useMutation({
-    mutationFn: async ({
-      fileName,
-      fileId,
-    }: {
-      fileName: string;
-      fileId: string;
-    }) => {
-      const response = await axios.post("/api/create-chat", {
+    mutationFn: async ({ fileName, fileId }: mutationFnProps) => {
+      const response = await axios.post("/api/prepare-pdf-document", {
         fileName,
         fileId,
       });
@@ -44,9 +45,15 @@ const FileUpload = () => {
         mutate(
           { fileId: response.$id, fileName: response.name },
           {
-            onSuccess: (data) => {
+            onSuccess: async (data) => {
               toast.success("successfully uploaded your files");
-              console.log(data);
+              if (data) {
+                const docs = data.data.flat();
+                const vectors = await Promise.all(docs.map(embedDocument));
+                await uploadDataToPinecone(vectors, response.$id);
+              } else {
+                throw new Error("something went wrong");
+              }
             },
             onError: (error) => {
               console.log(error);
