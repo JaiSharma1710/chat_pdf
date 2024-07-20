@@ -2,30 +2,22 @@
 import { InboxIcon, Loader } from "lucide-react";
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 import UploadFile from "@/lib/uploadFIle";
 import { embedDocument } from "@/lib/embeding";
 import { uploadDataToPinecone } from "@/lib/pinecone";
+import { useRouter } from "next/navigation";
 
-type mutationFnProps = {
-  fileName: string;
-  fileId: string;
-};
+interface UploadToPineconeResponse {
+  chat_id: string;
+}
 
 const FileUpload = () => {
-  const [uploading, setUploading] = useState(false);
-  const { mutate, isPending } = useMutation({
-    mutationFn: async ({ fileName, fileId }: mutationFnProps) => {
-      const response = await axios.post("/api/prepare-pdf-document", {
-        fileName,
-        fileId,
-      });
-      return response.data;
-    },
-  });
+  const router = useRouter();
+  const [processing, setProcessing] = useState(false);
+  const [message, setMessage] = useState("");
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: { "application/pdf": [".pdf"] },
@@ -36,35 +28,43 @@ const FileUpload = () => {
         return;
       }
       try {
-        setUploading(true);
+        setMessage("Uploading your file to cloud");
+        setProcessing(true);
         const response = await UploadFile(file[0]);
+
         if (!response.$id || !response.name) {
-          toast.error("something went wrong");
-          return;
+          throw new Error("Error uploading file to cloud");
         }
-        mutate(
-          { fileId: response.$id, fileName: response.name },
+        setMessage("Prossing your file");
+        const { data: pdfData } = await axios.post(
+          "/api/prepare-pdf-document",
+          { fileId: response.$id }
+        );
+
+        if (!pdfData) {
+          throw new Error("No PDF data found");
+        }
+
+        const docs = pdfData.data.flat();
+        setMessage("creating vectors");
+        const vectors = await Promise.all(docs.map(embedDocument));
+        setMessage("uploading to Pinecone");
+        await uploadDataToPinecone(vectors, response.$id);
+        setMessage("creating chat enviornment");
+        const { data } = await axios.post<UploadToPineconeResponse>(
+          "/api/upload-to-pinecone",
           {
-            onSuccess: async (data) => {
-              toast.success("successfully uploaded your files");
-              if (data) {
-                const docs = data.data.flat();
-                const vectors = await Promise.all(docs.map(embedDocument));
-                await uploadDataToPinecone(vectors, response.$id);
-              } else {
-                throw new Error("something went wrong");
-              }
-            },
-            onError: (error) => {
-              console.log(error);
-              toast.error("Error creating chat");
-            },
+            fileId: response.$id,
+            fileName: response.name,
           }
         );
-      } catch (error) {
+
+        router.push(`/chat/${data.chat_id}`);
+      } catch (error: any) {
+        toast.error(error.message || "something went wrong");
         console.log(error);
       } finally {
-        setUploading(false);
+        setProcessing(false);
       }
     },
   });
@@ -78,12 +78,10 @@ const FileUpload = () => {
         })}
       >
         <input {...getInputProps()} />
-        {isPending || uploading ? (
+        {processing ? (
           <>
             <Loader className="h-10 w-10 text-blue-500 animate-spin" />
-            <p className="mt-3 text-sm text-slate-400">
-              Uploading your file to cloud
-            </p>
+            <p className="mt-3 text-sm text-slate-400">{message}</p>
           </>
         ) : (
           <>
