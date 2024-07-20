@@ -1,20 +1,24 @@
 "use client";
-import { InboxIcon, Loader } from "lucide-react";
-import React, { useState } from "react";
-import { useDropzone } from "react-dropzone";
+import axios from "axios";
 import toast from "react-hot-toast";
-import axios, { AxiosResponse } from "axios";
+import { InboxIcon, Loader } from "lucide-react";
+import { useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { useRouter } from "next/navigation";
 
 import UploadFile from "@/lib/uploadFIle";
 import { embedDocument } from "@/lib/embeding";
 import { uploadDataToPinecone } from "@/lib/pinecone";
-import { useRouter } from "next/navigation";
 
 interface UploadToPineconeResponse {
   chat_id: string;
 }
 
-const FileUpload = () => {
+interface fileUploadProps {
+  IsLoggedIn: boolean;
+}
+
+const FileUpload = ({ IsLoggedIn }: fileUploadProps) => {
   const router = useRouter();
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
@@ -23,6 +27,11 @@ const FileUpload = () => {
     accept: { "application/pdf": [".pdf"] },
     maxFiles: 1,
     onDrop: async (file) => {
+      if (!IsLoggedIn) {
+        toast("please login to continue");
+        return;
+      }
+
       if (file[0].size > 10 * 24 * 1024) {
         toast.error("File size grater that the allowed limit of 10mb");
         return;
@@ -46,11 +55,11 @@ const FileUpload = () => {
         }
 
         const docs = pdfData.data.flat();
-        setMessage("creating vectors");
+        setMessage("Creating vectors");
         const vectors = await Promise.all(docs.map(embedDocument));
-        setMessage("uploading to Pinecone");
+        setMessage("Uploading to Pinecone");
         await uploadDataToPinecone(vectors, response.$id);
-        setMessage("creating chat enviornment");
+        setMessage("Creating chat enviornment");
         const { data } = await axios.post<UploadToPineconeResponse>(
           "/api/upload-to-pinecone",
           {
@@ -70,7 +79,7 @@ const FileUpload = () => {
   });
 
   return (
-    <div className="p-2 bg-white rounded-xl">
+    <div className="p-2 bg-white rounded-xl w-full">
       <div
         {...getRootProps({
           className:
