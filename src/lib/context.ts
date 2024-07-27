@@ -1,43 +1,30 @@
-import { getEmbeddings } from "./embeding";
-import { getPineconeClient } from "./pinecone";
-import { convertToAscii } from "./utils";
+import { getMatchesFromEmbeddings } from "./pinecone";
 
-export async function getMatchesFromEmbeddings(
-  embeddings: any,
-  fileId: string
-) {
-  const client = await getPineconeClient();
-  const pineconeIndex = client.index("chat-pdf");
-
+export async function getContext(queryEmbeddings: any, fileId: string) {
   try {
-    const nameSpace = convertToAscii(fileId);
+    const matches = await getMatchesFromEmbeddings(queryEmbeddings, fileId);
+    const qualifyingDocs = matches.filter(
+      (match) => match.score && match.score > 0.7
+    );
 
-    const queryResponse = await pineconeIndex.namespace(nameSpace).query({
-      vector: embeddings,
-      topK: 5,
-      includeMetadata: true,
-    });
+    type Metadata = {
+      text: string;
+      pageNumber: number;
+    };
 
-    return queryResponse.matches || [];
+    let docs = qualifyingDocs.map((match) => (match.metadata as Metadata).text);
+
+    return {
+      success: true,
+      data: docs.join("\n").substring(0, 3000),
+      error: "",
+    };
   } catch (error) {
-    console.log("error quering embeddings", error);
-    throw error;
+    console.log(error);
+    return {
+      success: false,
+      error: "failed fetching data from Pinecone",
+      data: "",
+    };
   }
-}
-
-export async function getContext(query: string, fileId: string) {
-  const queryEmbeddings = await getEmbeddings(query);
-  const matches = await getMatchesFromEmbeddings(queryEmbeddings, fileId);
-  const qualifingDocs = matches.filter(
-    (match) => match.score && match.score > 0.7
-  );
-
-  type Metadata = {
-    text: string;
-    pageNumber: number;
-  };
-
-  let docs = qualifingDocs.map((match) => (match.metadata as Metadata).text);
-
-  return docs.join("\n").substring(0, 3000);
 }

@@ -19,7 +19,7 @@ const FileUpload = () => {
     accept: { "application/pdf": [".pdf"] },
     maxFiles: 1,
     onDrop: async (file) => {
-      if (file[0].size > 10 * 24 * 1024) {
+      if (file[0].size > 427 * 24 * 1024) {
         toast.error("File size grater that the allowed limit of 10mb");
         return;
       }
@@ -41,7 +41,7 @@ const FileUpload = () => {
         if (!pdfData) {
           throw new Error("No PDF data found");
         }
-
+        console.log(pdfData)
         const docs = pdfData.data.flat();
         setMessage("Creating vectors");
         const vectors = await Promise.all(docs.map(embedDocument));

@@ -1,46 +1,37 @@
-import { getContext } from "@/lib/context";
-import { HfInference } from "@huggingface/inference";
-import { HuggingFaceStream, Message, StreamingTextResponse } from "ai";
-import { experimental_buildOpenAssistantPrompt } from "ai/prompts";
+import { convertToCoreMessages, generateText } from "ai";
 import { NextResponse } from "next/server";
-
-// Create a new HuggingFace Inference instance
-const Hf = new HfInference(process.env.NEXT_PUBLIC_HUGGINGFACE_API);
+import { google } from "@ai-sdk/google";
 
 export async function POST(req: Request) {
-  // Extract the `messages` from the body of the request
-  const { messages, fileId } = await req.json();
+  try {
+    const { fileId, context, messages } = await req.json();
 
-  const lastMessage: Message = messages[messages.length - 1];
+    if (!fileId) throw new Error("no file id found");
+    if (!context) throw new Error("no context found");
 
-  const context = await getContext(lastMessage.content, fileId);
+    const { text } = await generateText({
+      model: google("models/gemini-1.5-flash-latest"),
+      system: `You are an helpful ai assistant your name is chatPDF.ai that can answer any question using the context below
+      START OF THE CONTEXT
+      ${context}
+      END TO CONTEXT
+      if you don't know the answer just say i don't know don't make up the answer
+      `,
+      messages: convertToCoreMessages(messages),
+    });
 
-  const prompt = {
-    role: "system",
-    content: `You are an helpful ai assistant that can answer any question from the given context asked by the human 
-    START OF THE CONTEXT
-    ${context} 
-    END TO CONTEXT
-    if you don't know the answer just say i don't know don't make up the answer
-    `,
-  };
-
-  const messageChain = [
-    prompt,
-    ...messages.filter((msg: Message) => msg.role !== "system"),
-  ];
-
-  console.log(messageChain);
-
-  const response = await Hf.chatCompletion({
-    model: "mistralai/Mistral-7B-Instruct-v0.2",
-    messages: messageChain,
-    max_tokens: 500,
-    temperature: 0.1,
-    seed: 0,
-  });
-
-  const assistantResponse = response.choices[0].message;
-  messageChain.push(assistantResponse);
-  return NextResponse.json(messageChain);
+    return NextResponse.json(
+      {
+        message: text,
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        message: error.message || "something went wrong",
+      },
+      { status: 500 }
+    );
+  }
 }
