@@ -16,10 +16,9 @@ export const uploadDataToPinecone = async (data: any, fileId: string) => {
   try {
     const client = await getPineconeClient();
     const pineconeIndex = client.index("chat-pdf");
-    console.log("Inserting vectors into Pinecone");
     const nameSpace = convertToAscii(fileId);
-    const response = await pineconeIndex.namespace(nameSpace).upsert(data);
-    console.log(response);
+    await pineconeIndex.namespace(nameSpace).upsert(data);
+    return nameSpace;
   } catch (error) {
     console.log("error at upload to pinecone" + error);
   }

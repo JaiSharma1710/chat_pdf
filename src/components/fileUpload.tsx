@@ -10,15 +10,7 @@ import UploadFile from "@/lib/uploadFIle";
 import { embedDocument } from "@/lib/embeding";
 import { uploadDataToPinecone } from "@/lib/pinecone";
 
-interface UploadToPineconeResponse {
-  chat_id: string;
-}
-
-interface fileUploadProps {
-  IsLoggedIn: boolean;
-}
-
-const FileUpload = ({ IsLoggedIn }: fileUploadProps) => {
+const FileUpload = () => {
   const router = useRouter();
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
@@ -27,11 +19,6 @@ const FileUpload = ({ IsLoggedIn }: fileUploadProps) => {
     accept: { "application/pdf": [".pdf"] },
     maxFiles: 1,
     onDrop: async (file) => {
-      if (!IsLoggedIn) {
-        toast("please login to continue");
-        return;
-      }
-
       if (file[0].size > 10 * 24 * 1024) {
         toast.error("File size grater that the allowed limit of 10mb");
         return;
@@ -44,6 +31,7 @@ const FileUpload = ({ IsLoggedIn }: fileUploadProps) => {
         if (!response.$id || !response.name) {
           throw new Error("Error uploading file to cloud");
         }
+
         setMessage("Prossing your file");
         const { data: pdfData } = await axios.post(
           "/api/prepare-pdf-document",
@@ -58,17 +46,12 @@ const FileUpload = ({ IsLoggedIn }: fileUploadProps) => {
         setMessage("Creating vectors");
         const vectors = await Promise.all(docs.map(embedDocument));
         setMessage("Uploading to Pinecone");
-        await uploadDataToPinecone(vectors, response.$id);
-        setMessage("Creating chat enviornment");
-        const { data } = await axios.post<UploadToPineconeResponse>(
-          "/api/upload-to-pinecone",
-          {
-            fileId: response.$id,
-            fileName: response.name,
-          }
+        const pineconeNameSpace = await uploadDataToPinecone(
+          vectors,
+          response.$id
         );
-
-        router.push(`/chat/${data.chat_id}`);
+        setMessage("Creating chat enviornment");
+        router.push(`/chat/${pineconeNameSpace}`);
       } catch (error: any) {
         toast.error(error.message || "something went wrong");
         console.log(error);

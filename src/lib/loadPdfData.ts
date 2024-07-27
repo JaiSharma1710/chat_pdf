@@ -26,7 +26,7 @@ export const loadPdfData = async (fileId: string) => {
     const document = await Promise.all(docs.map(prepareDocument));
     return document;
   } catch (error) {
-    console.log("error at loadPdfToPinecone", error);
+    console.log("error at loadPdfData", error);
     return "";
   }
 };

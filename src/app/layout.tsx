@@ -1,9 +1,11 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
+import Image from "next/image";
+
+import Logo from "../../public/chatPdf.png";
 
 import "./globals.css";
-import Provider from "@/components/Provider";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Chat PDF",
@@ -16,15 +18,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <Provider>
-        <html lang="en">
-          <body className="bg-gradient-to-r from-rose-100 to-teal-100">
-            <Toaster />
-            {children}
-          </body>
-        </html>
-      </Provider>
-    </ClerkProvider>
+    <html lang="en">
+      <body className="bg-gradient-to-r from-rose-100 to-teal-100">
+        <Toaster />
+        <Link
+          href="/"
+          className="flex items-center bg-gradient-to-r from-rose-100 to-teal-100 shadow-md cursor-pointer"
+        >
+          <Image
+            alt="logo"
+            className="h-auto w-24 px-4"
+            src={Logo}
+            width={500}
+            height={500}
+          />
+          <p className="font-bold text-2xl">ChatPDF.ai</p>
+        </Link>
+        {children}
+      </body>
+    </html>
   );
 }
