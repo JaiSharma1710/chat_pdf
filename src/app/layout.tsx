@@ -21,9 +21,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-gradient-to-r from-rose-100 to-teal-100">
         <Toaster />
+        <div className="shadow-md">
         <Link
           href="/"
-          className="flex items-center bg-gradient-to-r from-rose-100 to-teal-100 shadow-md cursor-pointer"
+          className="flex items-center cursor-pointer w-max"
         >
           <Image
             alt="logo"
@@ -34,6 +35,7 @@ export default function RootLayout({
           />
           <p className="font-bold text-2xl">ChatPDF.ai</p>
         </Link>
+        </div>
         {children}
       </body>
     </html>

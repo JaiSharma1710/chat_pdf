@@ -2,7 +2,7 @@ import { convertToCoreMessages, generateText } from "ai";
 import { NextResponse } from "next/server";
 import { google } from "@ai-sdk/google";
 
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const { fileId, context, messages } = await req.json();
 
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
       {
         message: error.message || "something went wrong",

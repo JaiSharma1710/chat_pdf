@@ -32,9 +32,11 @@ const ChatComponent = ({ fileId }: Props) => {
   async function submit(e: FormEvent) {
     e.preventDefault();
     try {
+      const inputVal = input;
       setIsLoading(true);
-      setMessage((pre) => [...pre, { role: "user", content: input }]);
-      let queryEmbedding = await getEmbeddings(input);
+      setInput("");
+      setMessage((pre) => [...pre, { role: "user", content: inputVal }]);
+      let queryEmbedding = await getEmbeddings(inputVal);
       if (!queryEmbedding) throw new Error("problem creating embedding");
 
       const {
@@ -47,7 +49,7 @@ const ChatComponent = ({ fileId }: Props) => {
       const chatResponse = await axios.post("/api/chat", {
         fileId,
         context,
-        messages: [...messages, { role: "user", content: input }],
+        messages: [...messages, { role: "user", content: inputVal }],
       });
 
       setMessage((pre) => [
@@ -57,7 +59,6 @@ const ChatComponent = ({ fileId }: Props) => {
     } catch (error: any) {
       toast.error(error.messages || "Something went wrong");
     } finally {
-      setInput("");
       setIsLoading(false);
     }
   }
