@@ -12,12 +12,15 @@ const MessageList = ({ messages, isLoading }: Props) => {
   if (!messages) return <></>;
 
   return (
-    <div className="flex flex-col justify-end h-full gap-3 p-4">
-      {messages.map((messages, index) => {
+    <div className="w-full h-full overflow-y-scroll flex flex-col-reverse no-scrollbar">
+      {isLoading && (
+        <div className="bg-gray-500 animate-pulse w-1/2 min-h-10 rounded-md mt-4" />
+      )}
+      {messages.toReversed().map((messages, index) => {
         return (
           <div
             key={index}
-            className={cn("flex", {
+            className={cn("flex items-center my-4", {
               "justify-end": messages.role === "user",
               "justify-start": messages.role === "assistant",
             })}
@@ -38,9 +41,6 @@ const MessageList = ({ messages, isLoading }: Props) => {
           </div>
         );
       })}
-      {isLoading && (
-        <div className="bg-gray-500 animate-pulse w-1/2 min-h-10 rounded-md" />
-      )}
     </div>
   );
 };

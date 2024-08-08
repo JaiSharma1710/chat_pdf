@@ -65,7 +65,7 @@ const ChatComponent = ({ fileId }: Props) => {
 
   return (
     <div className="text-white relative h-full p-4">
-      <div className="h-[90%] my-4 bg-gray-700 rounded-lg overflow-y-auto no-scrollbar">
+      <div className="h-[90%] my-4 bg-gray-700 rounded-lg p-4 no-scrollbar">
         <MessageList messages={messages} isLoading={isLoading} />
       </div>
       <form
